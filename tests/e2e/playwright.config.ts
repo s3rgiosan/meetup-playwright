@@ -55,6 +55,11 @@ const config = defineConfig({
     new URL('./config/global-setup.ts', 'file:' + __filename).href
   ),
 
+  reporter: [
+    ['list'],
+    ['html']
+  ],
+
   /**
    * Projects - Define which browsers/devices to test against.
    *

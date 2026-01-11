@@ -23,7 +23,7 @@
 | ------- | --------- |
 | `npm run test:e2e` | Executa todos os testes E2E em modo headless (sem interface gráfica). Ideal para CI/CD e execução rápida. |
 | `npm run test:e2e:debug` | Executa os testes em modo debug com Playwright Inspector. Permite pausar execução, inspecionar seletores e executar passo a passo. |
-| `npm run test:e2e:ui` | Abre a interface gráfica do Playwright (UI Mode). Permite visualizar, executar e debug de testes interativamente. **Melhor opção para demos!** |
+| `npm run test:e2e:ui` | Abre a interface gráfica do Playwright (UI Mode). Permite visualizar, executar e debug de testes interativamente. |
 | `npm run test:e2e:headed` | Executa os testes com o browser visível. Útil para ver a execução em tempo real sem pausas. |
 | `npm run test:e2e:trace` | Executa os testes com tracing habilitado. Gera um arquivo de trace que pode ser visualizado no Trace Viewer para análise detalhada de falhas. |
 
