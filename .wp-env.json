@@ -1,0 +1,16 @@
+{
+	"core": null,
+	"plugins": [
+		"."
+	],
+	"themes": [],
+	"env": {
+		"tests": {
+			"port": 8889,
+			"config": {
+				"WP_DEBUG": true,
+				"SCRIPT_DEBUG": true
+			}
+		}
+	}
+}

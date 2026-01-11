@@ -1,0 +1,30 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "meetup/info",
+	"version": "1.0.0",
+	"title": "Meetup Info",
+	"category": "widgets",
+	"icon": "calendar-alt",
+	"description": "Display meetup information",
+	"attributes": {
+		"title": {
+			"type": "string",
+			"default": "Playwright + AI"
+		},
+		"date": {
+			"type": "string",
+			"default": "January 2026"
+		},
+		"location": {
+			"type": "string",
+			"default": "WordPress Meetup"
+		}
+	},
+	"supports": {
+		"html": false
+	},
+	"textdomain": "meetup-playwright",
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}
