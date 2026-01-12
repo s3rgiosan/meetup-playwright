@@ -10,8 +10,8 @@
  */
 
 $title    = $attributes['title'] ?? __( 'Playwright + AI', 'meetup-playwright' );
-$date     = $attributes['date'] ?? __( 'January 2026', 'meetup-playwright' );
-$location = $attributes['location'] ?? __( 'WordPress Meetup', 'meetup-playwright' );
+$date     = $attributes['date'] ?? __( 'Janeiro 2026', 'meetup-playwright' );
+$location = $attributes['location'] ?? __( 'Lisboa, Portugal', 'meetup-playwright' );
 ?>
 
 <div

@@ -14,11 +14,11 @@
 		},
 		"date": {
 			"type": "string",
-			"default": "January 2026"
+			"default": "Janeiro 2026"
 		},
 		"location": {
 			"type": "string",
-			"default": "WordPress Meetup"
+			"default": "Lisboa, Portugal"
 		}
 	},
 	"supports": {

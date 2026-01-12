@@ -42,18 +42,51 @@ jobs:
         run: npm run env:start
 
       - name: Run tests
+        id: test
         run: npm run test:e2e
+        continue-on-error: true
+
+      - name: Generate test summary
+        if: always()
+        run: |
+          echo "## E2E Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f "playwright-report/index.html" ]; then
+            echo "✅ Tests completed. View detailed report in artifacts." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Test execution failed or report not generated." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Test Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "- HTML Report: Available in artifacts below" >> $GITHUB_STEP_SUMMARY
+          echo "- Test Results: Screenshots and traces available in artifacts" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-html-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
 
       - name: Upload test artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-test-results
           path: |
-            playwright-report/
             test-results/
+            playwright-report/
           retention-days: 7
+          if-no-files-found: ignore
 
       - name: Stop WordPress
         if: always()
         run: npm run env:stop
+
+      - name: Fail if tests failed
+        if: steps.test.outcome == 'failure'
+        run: exit 1

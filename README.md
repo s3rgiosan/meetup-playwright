@@ -21,15 +21,16 @@
 
 | Comando | Descrição |
 | ------- | --------- |
-| `npm run test:e2e` | Executa todos os testes E2E em modo headless (sem interface gráfica). Ideal para CI/CD e execução rápida. |
-| `npm run test:e2e:debug` | Executa os testes em modo debug com Playwright Inspector. Permite pausar execução, inspecionar seletores e executar passo a passo. |
-| `npm run test:e2e:ui` | Abre a interface gráfica do Playwright (UI Mode). Permite visualizar, executar e debug de testes interativamente. |
-| `npm run test:e2e:headed` | Executa os testes com o browser visível. Útil para ver a execução em tempo real sem pausas. |
-| `npm run test:e2e:trace` | Executa os testes com tracing habilitado. Gera um arquivo de trace que pode ser visualizado no Trace Viewer para análise detalhada de falhas. |
+| `npm run test:e2e` | Executa todos os testes E2E em modo headless. Ideal para CI/CD. |
+| `npm run test:e2e:debug` | Modo debug com Playwright Inspector. Pausar e inspecionar seletores. |
+| `npm run test:e2e:ui` | Interface gráfica do Playwright (UI Mode). Debug interativo. |
+| `npm run test:e2e:headed` | Testes com browser visível. Ver execução em tempo real. |
+| `npm run test:e2e:trace` | Testes com tracing. Gera arquivo para análise detalhada. |
 
-#### Opções adicionais
 
-Todos os comandos acima aceitam opções adicionais do Playwright. Exemplos:
+### Opções adicionais
+
+Todos os comandos acima aceitam opções adicionais do Playwright:
 
 ```bash
 # Executar apenas um arquivo de teste específico
@@ -41,7 +42,7 @@ npm run test:e2e -- --grep "frontend"
 # Executar testes com 2 workers em paralelo
 npm run test:e2e -- --workers=2
 
-# Executar testes e atualizar snapshots
+# Executar testes e atualizar snapshots visuais
 npm run test:e2e -- --update-snapshots
 ```
 
