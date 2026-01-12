@@ -20,13 +20,12 @@ $location = $attributes['location'] ?? __( 'Lisboa, Portugal', 'meetup-playwrigh
 >
 	<h3 class="meetup-info__title" data-testid="meetup-title"><?php echo esc_html( $title ); ?></h3>
 	<p class="meetup-info__details" data-testid="meetup-details">
-		<?php
-		printf(
-			/* translators: 1: Date, 2: Location */
-			esc_html__( '📅 %1$s | 📍 %2$s', 'meetup-playwright' ),
-			esc_html( $date ),
-			esc_html( $location )
-		);
-		?>
+		<span class="meetup-info__date" data-testid="meetup-date">
+			📅 <?php echo esc_html( $date ); ?>
+		</span>
+		<span class="meetup-info__separator"> | </span>
+		<span class="meetup-info__location" data-testid="meetup-location">
+			📍 <?php echo esc_html( $location ); ?>
+		</span>
 	</p>
 </div>

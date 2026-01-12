@@ -1,5 +1,12 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
+const FAIL_BLOCK_CAN_BE_SEARCHED = false; // Testar a pesquisa do bloco no inserter de blocos
+const FAIL_BLOCK_CAN_BE_INSERTED = false; // Testar a inserção do bloco no editor
+const FAIL_BLOCK_HAS_SEMANTIC_HTML = false; // Testar a semântica do HTML do bloco
+const FAIL_BLOCK_SERIALIZATION = false; // Problema de encoding - acentos corrompidos na serialização
+const FAIL_BLOCK_SERIALIZATION_EXTRA_FIELD = false; // Atributo perdido durante serialização/deserialização
+const FAIL_BLOCK_SERIALIZATION_EMPTY_ATTRIBUTES = false; // Atributos com valores vazios ou null não preservados
+
 /**
  * Testes E2E para o bloco Meetup Info
  *
@@ -29,7 +36,16 @@ test.describe('Meetup Info Block', () => {
 
 			// Abre o inserter de blocos e procura pelo bloco
 			await page.getByRole('button', { name: 'Block Inserter' }).click();
-			await page.getByRole('searchbox', { name: 'Search' }).fill('Meetup Info');
+			const searchbox = page.getByRole('searchbox', { name: 'Search' });
+			await searchbox.clear();
+
+			if (FAIL_BLOCK_CAN_BE_SEARCHED) {
+				await searchbox.fill('Not a valid block');
+			} else {
+				await searchbox.fill('Meetup Info');
+			}
+
+			await page.waitForTimeout(500);
 
 			// Verifica se o bloco aparece nos resultados da pesquisa
 			const blockOption = page.getByRole('option', { name: 'Meetup Info' });
@@ -48,15 +64,22 @@ test.describe('Meetup Info Block', () => {
 
 			// Verifica se os valores padrão são exibidos correctamente no editor
 			const editorCanvas = editor.canvas;
+
 			await expect(editorCanvas.locator('.meetup-info__title')).toHaveText(
 				'Playwright + AI'
 			);
-			await expect(editorCanvas.locator('.meetup-info__details')).toContainText(
+
+			await expect(editorCanvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Janeiro 2026'
 			);
-			await expect(editorCanvas.locator('.meetup-info__details')).toContainText(
-				'Lisboa, Portugal'
-			);
+
+			if (FAIL_BLOCK_CAN_BE_INSERTED) {
+				await expect(editorCanvas.locator('[data-testid="meetup-location"]')).toContainText('Not a valid location');
+			} else {
+				await expect(editorCanvas.locator('[data-testid="meetup-location"]')).toContainText(
+					'Lisboa, Portugal'
+				);
+			}
 		});
 
 		/**
@@ -110,6 +133,7 @@ test.describe('Meetup Info Block', () => {
 			await titleControl.waitFor({ state: 'visible' });
 			await titleControl.fill('Título Personalizado do Meetup');
 			await titleControl.blur();
+
 			await expect(editor.canvas.locator('.meetup-info__title')).toHaveText(
 				'Título Personalizado do Meetup'
 			);
@@ -121,7 +145,8 @@ test.describe('Meetup Info Block', () => {
 			await dateControl.waitFor({ state: 'visible' });
 			await dateControl.fill('Março 2026');
 			await dateControl.blur();
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+
+			await expect(editor.canvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Março 2026'
 			);
 
@@ -132,10 +157,12 @@ test.describe('Meetup Info Block', () => {
 			await locationControl.waitFor({ state: 'visible' });
 			await locationControl.fill('Porto, Portugal');
 			await locationControl.blur();
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+
+			await expect(editor.canvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Março 2026'
 			);
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+
+			await expect(editor.canvas.locator('[data-testid="meetup-location"]')).toContainText(
 				'Porto, Portugal'
 			);
 		});
@@ -143,7 +170,7 @@ test.describe('Meetup Info Block', () => {
 		/**
 		 * Verifica se o bloco pode ser inserido com atributos personalizados.
 		 *
-		 * Testa a inserção do bloco passando valores customizados para título, data
+		 * Testa a inserção do bloco passando valores personalizados para título, data
 		 * e localização, garantindo que esses valores são aplicados correctamente
 		 * no momento da inserção.
 		 */
@@ -167,10 +194,10 @@ test.describe('Meetup Info Block', () => {
 			await expect(editor.canvas.locator('.meetup-info__title')).toHaveText(
 				'Workshop: Testes em WordPress'
 			);
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+			await expect(editor.canvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Fevereiro 2026'
 			);
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+			await expect(editor.canvas.locator('[data-testid="meetup-location"]')).toContainText(
 				'Lisboa, Portugal'
 			);
 		});
@@ -209,10 +236,10 @@ test.describe('Meetup Info Block', () => {
 			await expect(page.locator('[data-testid="meetup-title"]')).toHaveText(
 				'Playwright + AI'
 			);
-			await expect(page.locator('[data-testid="meetup-details"]')).toContainText(
+			await expect(page.locator('[data-testid="meetup-date"]')).toContainText(
 				'Janeiro 2026'
 			);
-			await expect(page.locator('[data-testid="meetup-details"]')).toContainText(
+			await expect(page.locator('[data-testid="meetup-location"]')).toContainText(
 				'Lisboa, Portugal'
 			);
 		});
@@ -220,7 +247,7 @@ test.describe('Meetup Info Block', () => {
 		/**
 		 * Verifica se o bloco renderiza correctamente no frontend com atributos personalizados.
 		 *
-		 * Testa que os valores customizados (título, data, localização) são correctamente
+		 * Testa que os valores personalizados (título, data, localização) são correctamente
 		 * renderizados na página pública do post após publicação.
 		 */
 		test('block renders with custom attributes on frontend', async ({
@@ -249,10 +276,10 @@ test.describe('Meetup Info Block', () => {
 			await expect(page.locator('[data-testid="meetup-title"]')).toHaveText(
 				'Técnicas Avançadas de Playwright'
 			);
-			await expect(page.locator('[data-testid="meetup-details"]')).toContainText(
+			await expect(page.locator('[data-testid="meetup-date"]')).toContainText(
 				'Abril 2026'
 			);
-			await expect(page.locator('[data-testid="meetup-details"]')).toContainText(
+			await expect(page.locator('[data-testid="meetup-location"]')).toContainText(
 				'Remoto'
 			);
 		});
@@ -287,12 +314,13 @@ test.describe('Meetup Info Block', () => {
 			const meetupBlock = page.locator('[data-testid="meetup-info"]');
 
 			// Verifica que o bloco usa HTML semântico (h3 para título, p para detalhes)
-			await expect(meetupBlock.locator('h3')).toBeVisible();
+			if (FAIL_BLOCK_HAS_SEMANTIC_HTML) {
+				await expect(meetupBlock.locator('h2')).toBeVisible();
+			} else {
+				await expect(meetupBlock.locator('h3')).toBeVisible();
+			}
 			await expect(meetupBlock.locator('p')).toBeVisible();
 
-			// Verifica que os atributos data-testid estão presentes
-			await expect(meetupBlock.locator('[data-testid="meetup-title"]')).toBeVisible();
-			await expect(meetupBlock.locator('[data-testid="meetup-details"]')).toBeVisible();
 		});
 
 		/**
@@ -403,14 +431,35 @@ test.describe('Meetup Info Block', () => {
 			requestUtils,
 		}) => {
 			await admin.createNewPost({ title: 'Post de Teste com Bloco' });
-			await editor.insertBlock({
-				name: 'meetup/info',
-				attributes: {
-					title: 'Teste de Serialização',
-					date: 'Maio 2026',
-					location: 'Localização de Teste',
-				},
-			});
+
+			if (FAIL_BLOCK_SERIALIZATION) {
+				await editor.insertBlock({
+					name: 'meetup/info',
+					attributes: {
+						title: 'Teste de Serialização',
+						date: 'Maio 2026',
+						location: 'Localização de Teste',
+					},
+				});
+			} else if (FAIL_BLOCK_SERIALIZATION_EMPTY_ATTRIBUTES) {
+				await editor.insertBlock({
+					name: 'meetup/info',
+					attributes: {
+						title: '',
+						date: null,
+						location: undefined,
+					},
+				});
+			} else {
+				await editor.insertBlock({
+					name: 'meetup/info',
+					attributes: {
+						title: 'Teste de Serialização',
+						date: 'Maio 2026',
+						location: 'Localização de Teste',
+					},
+				});
+			}
 
 			const postId = await editor.publishPost();
 
@@ -424,15 +473,46 @@ test.describe('Meetup Info Block', () => {
 			const post = await requestUtils.rest({
 				path: `/wp/v2/posts/${postId}`,
 				method: 'GET',
+				params: {
+					context: 'edit',
+				},
 			});
 
-			const renderedContent = post.content.rendered;
+			const rawContent = post.content.raw;
 
-			// Verifica que o bloco e os seus atributos estão presentes no HTML renderizado
-			expect(renderedContent).toContain('data-testid="meetup-info"');
-			expect(renderedContent).toMatch(/Teste de Serialização/i);
-			expect(renderedContent).toMatch(/Maio 2026/i);
-			expect(renderedContent).toMatch(/Localização de Teste/i);
+			// Verifica a serialização no conteúdo JSON do bloco
+			// Formato: <!-- wp:meetup/info {"title":"...","date":"...","location":"..."} /-->
+			// Isto garante que os atributos foram correctamente guardados na base de dados
+			// e que caracteres especiais (acentos, etc.) foram preservados
+
+			// Procura o bloco serializado no conteúdo
+			// O formato pode ser: <!-- wp:meetup/info {...} /--> ou <!-- wp:meetup/info {...} --> ... <!-- /wp:meetup/info -->
+			const blockMatch = rawContent.match(
+				/<!--\s*wp:meetup\/info\s+({[^}]+})\s+(?:\/-->|-->)/s
+			);
+			expect(blockMatch).not.toBeNull();
+			expect(blockMatch![1]).toBeDefined();
+
+			// Parse do JSON do bloco para verificar os atributos
+			const blockAttributes = JSON.parse(blockMatch![1]);
+			expect(blockAttributes.title).toBe('Teste de Serialização');
+			expect(blockAttributes.date).toBe('Maio 2026');
+
+			if (FAIL_BLOCK_SERIALIZATION) {
+				expect(blockAttributes.location).toBe('LocalizaÃ§Ã£o de Teste');
+			} else {
+				expect(blockAttributes.location).toBe('Localização de Teste');
+			}
+
+			if ( FAIL_BLOCK_SERIALIZATION_EXTRA_FIELD) {
+				expect(blockAttributes.extraField).toBe('valor');
+			}
+
+			if ( FAIL_BLOCK_SERIALIZATION_EMPTY_ATTRIBUTES) {
+				expect(blockAttributes.title).toBe('');
+				expect(blockAttributes.date).toBe(null);
+				expect(blockAttributes.location).toBe(undefined);
+			}
 		});
 
 		/**
@@ -470,10 +550,10 @@ test.describe('Meetup Info Block', () => {
 			await expect(editor.canvas.locator('.meetup-info__title')).toHaveText(
 				'Teste Persistente'
 			);
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+			await expect(editor.canvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Junho 2026'
 			);
-			await expect(editor.canvas.locator('.meetup-info__details')).toContainText(
+			await expect(editor.canvas.locator('[data-testid="meetup-location"]')).toContainText(
 				'Faro, Portugal'
 			);
 		});

@@ -11,7 +11,7 @@
 
 | Comando | Descrição |
 | ------- | --------- |
-| `npm run env` | Alias para executar comandos wp-env diretamente |
+| `npm run env` | Alias para executar comandos wp-env directamente |
 | `npm run env:start` | Inicia o ambiente WordPress de teste em `http://localhost:8889` |
 | `npm run env:stop` | Para o ambiente WordPress (mantém os dados) |
 | `npm run env:clean` | Limpa o ambiente (remove dados mas mantém containers) |
@@ -25,7 +25,7 @@
 | `npm run test:e2e:debug` | Modo debug com Playwright Inspector. Pausar e inspecionar seletores. |
 | `npm run test:e2e:ui` | Interface gráfica do Playwright (UI Mode). Debug interativo. |
 | `npm run test:e2e:headed` | Testes com browser visível. Ver execução em tempo real. |
-| `npm run test:e2e:trace` | Testes com tracing. Gera arquivo para análise detalhada. |
+| `npm run test:e2e:trace` | Testes com tracing. Gera ficheiro para análise detalhada. |
 
 
 ### Opções adicionais
@@ -33,7 +33,7 @@
 Todos os comandos acima aceitam opções adicionais do Playwright:
 
 ```bash
-# Executar apenas um arquivo de teste específico
+# Executar apenas um ficheiro de teste específico
 npm run test:e2e -- specs/meetup-info.spec.ts
 
 # Executar apenas testes que contenham "frontend" no nome
@@ -42,7 +42,7 @@ npm run test:e2e -- --grep "frontend"
 # Executar testes com 2 workers em paralelo
 npm run test:e2e -- --workers=2
 
-# Executar testes e atualizar snapshots visuais
+# Executar testes e actualizar snapshots visuais
 npm run test:e2e -- --update-snapshots
 ```
 

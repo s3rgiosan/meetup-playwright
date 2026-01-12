@@ -31,9 +31,23 @@ registerBlockType('meetup/info', {
 					</PanelBody>
 				</InspectorControls>
 				<div className="meetup-info__content">
-					<h3 className="meetup-info__title">{attributes.title}</h3>
-					<p className="meetup-info__details">
-						{`📅 ${attributes.date} | 📍 ${attributes.location}`}
+					<h3 className="meetup-info__title" data-testid="meetup-title">
+						{attributes.title}
+					</h3>
+					<p className="meetup-info__details" data-testid="meetup-details">
+						<span
+							className="meetup-info__date"
+							data-testid="meetup-date"
+						>
+							{`📅 ${attributes.date}`}
+						</span>
+						<span className="meetup-info__separator"> | </span>
+						<span
+							className="meetup-info__location"
+							data-testid="meetup-location"
+						>
+							{`📍 ${attributes.location}`}
+						</span>
 					</p>
 				</div>
 			</div>
