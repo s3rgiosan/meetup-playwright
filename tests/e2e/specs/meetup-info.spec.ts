@@ -1,11 +1,23 @@
 import { test, expect } from '@wordpress/e2e-test-utils-playwright';
 
-const FAIL_BLOCK_CAN_BE_SEARCHED = false; // Testar a pesquisa do bloco no inserter de blocos
-const FAIL_BLOCK_CAN_BE_INSERTED = false; // Testar a inserção do bloco no editor
-const FAIL_BLOCK_HAS_SEMANTIC_HTML = false; // Testar a semântica do HTML do bloco
-const FAIL_BLOCK_SERIALIZATION = false; // Problema de encoding - acentos corrompidos na serialização
-const FAIL_BLOCK_SERIALIZATION_EXTRA_FIELD = false; // Atributo perdido durante serialização/deserialização
-const FAIL_BLOCK_SERIALIZATION_EMPTY_ATTRIBUTES = false; // Atributos com valores vazios ou null não preservados
+/**
+ * Flags de Demonstração de Falhas
+ *
+ * - FAIL_BLOCK_CAN_BE_SEARCHED: Simula pesquisa por bloco inexistente
+ * - FAIL_BLOCK_CAN_BE_INSERTED: Simula valor incorrecto após inserção
+ * - FAIL_BLOCK_HAS_SEMANTIC_HTML: Simula HTML semântico incorrecto (h2 em vez de h3)
+ * - FAIL_BLOCK_SERIALIZATION: Simula problema de encoding (mojibake) na serialização
+ * - FAIL_BLOCK_SERIALIZATION_EXTRA_FIELD: Simula atributo perdido na serialização
+ * - FAIL_BLOCK_SERIALIZATION_EMPTY_ATTRIBUTES: Simula atributos vazios/nulos não preservados
+ *
+ * Para demonstrar falhas, altere qualquer flag para `true` e execute os testes.
+ */
+const FAIL_BLOCK_CAN_BE_SEARCHED = false;
+const FAIL_BLOCK_CAN_BE_INSERTED = false;
+const FAIL_BLOCK_HAS_SEMANTIC_HTML = false;
+const FAIL_BLOCK_SERIALIZATION = false;
+const FAIL_BLOCK_SERIALIZATION_EXTRA_FIELD = false;
+const FAIL_BLOCK_SERIALIZATION_EMPTY_ATTRIBUTES = false;
 
 /**
  * Testes E2E para o bloco Meetup Info
@@ -45,6 +57,7 @@ test.describe('Meetup Info Block', () => {
 				await searchbox.fill('Meetup Info');
 			}
 
+			// Aguarda que a pesquisa seja processada (debounce)
 			await page.waitForTimeout(500);
 
 			// Verifica se o bloco aparece nos resultados da pesquisa
@@ -65,10 +78,13 @@ test.describe('Meetup Info Block', () => {
 			// Verifica se os valores padrão são exibidos correctamente no editor
 			const editorCanvas = editor.canvas;
 
+			// Verifica que o título padrão é exibido correctamente
 			await expect(editorCanvas.locator('.meetup-info__title')).toHaveText(
 				'Playwright + AI'
 			);
 
+			// Verifica que a data padrão é exibida correctamente
+			// Usa data-testid para selecção mais precisa e estável
 			await expect(editorCanvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Janeiro 2026'
 			);
@@ -97,7 +113,7 @@ test.describe('Meetup Info Block', () => {
 			await admin.createNewPost();
 			await editor.insertBlock({ name: 'meetup/info' });
 
-			// Seleciona o bloco para abrir o painel de configurações
+			// Selecciona o bloco clicando nele (isto activa o bloco e pode abrir o painel)
 			await editor.canvas.locator('.meetup-info').click();
 
 			// Verifica se o painel de configurações está aberto, caso contrário abre-o
@@ -109,6 +125,7 @@ test.describe('Meetup Info Block', () => {
 				.catch(() => false);
 
 			if (!isSettingsPanelOpen) {
+				// Procura o botão Settings na barra superior do editor (não no conteúdo)
 				const editorTopBar = page.getByRole('region', {
 					name: 'Editor top bar',
 				});
@@ -134,6 +151,7 @@ test.describe('Meetup Info Block', () => {
 			await titleControl.fill('Título Personalizado do Meetup');
 			await titleControl.blur();
 
+			// Verifica que o canvas reflecte a mudança imediatamente
 			await expect(editor.canvas.locator('.meetup-info__title')).toHaveText(
 				'Título Personalizado do Meetup'
 			);
@@ -158,6 +176,7 @@ test.describe('Meetup Info Block', () => {
 			await locationControl.fill('Porto, Portugal');
 			await locationControl.blur();
 
+			// Verifica que todas as alterações foram preservadas
 			await expect(editor.canvas.locator('[data-testid="meetup-date"]')).toContainText(
 				'Março 2026'
 			);
@@ -463,7 +482,7 @@ test.describe('Meetup Info Block', () => {
 
 			const postId = await editor.publishPost();
 
-			// Aguarda que o post seja completamente publicado
+			// Aguarda que o post seja completamente publicado e a UI actualizada
 			await editor.page
 				.getByRole('link', { name: 'View Post', exact: true })
 				.waitFor({ state: 'visible', timeout: 10000 });
@@ -480,20 +499,31 @@ test.describe('Meetup Info Block', () => {
 
 			const rawContent = post.content.raw;
 
-			// Verifica a serialização no conteúdo JSON do bloco
-			// Formato: <!-- wp:meetup/info {"title":"...","date":"...","location":"..."} /-->
-			// Isto garante que os atributos foram correctamente guardados na base de dados
-			// e que caracteres especiais (acentos, etc.) foram preservados
-
-			// Procura o bloco serializado no conteúdo
-			// O formato pode ser: <!-- wp:meetup/info {...} /--> ou <!-- wp:meetup/info {...} --> ... <!-- /wp:meetup/info -->
+			/**
+			 * Extrai o JSON do bloco do conteúdo serializado
+			 *
+			 * O WordPress serializa blocos no formato:
+			 * <!-- wp:meetup/info {"title":"...","date":"...","location":"..."} /-->
+			 *
+			 * Usamos uma regex para extrair o JSON entre as chavetas.
+			 * O formato pode variar ligeiramente (com ou sem fecho /-->), por isso
+			 * a regex é flexível.
+			 */
 			const blockMatch = rawContent.match(
 				/<!--\s*wp:meetup\/info\s+({[^}]+})\s+(?:\/-->|-->)/s
 			);
 			expect(blockMatch).not.toBeNull();
 			expect(blockMatch![1]).toBeDefined();
 
-			// Parse do JSON do bloco para verificar os atributos
+			/**
+			 * Faz parse do JSON e verifica os atributos
+			 *
+			 * Após extrair o JSON, fazemos parse e verificamos que cada atributo
+			 * corresponde ao valor esperado. Isto garante que:
+			 * - A serialização funcionou correctamente
+			 * - Os caracteres especiais foram preservados
+			 * - Não houve perda de dados durante o processo
+			 */
 			const blockAttributes = JSON.parse(blockMatch![1]);
 			expect(blockAttributes.title).toBe('Teste de Serialização');
 			expect(blockAttributes.date).toBe('Maio 2026');
