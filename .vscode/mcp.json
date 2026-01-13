@@ -3,13 +3,7 @@
     "playwright-test": {
       "type": "stdio",
       "command": "npx",
-      "args": [
-        "playwright",
-        "run-test-mcp-server",
-        "-c",
-        "tests/e2e/playwright.config.ts"
-      ]
+      "args": ["playwright", "run-test-mcp-server"]
     }
-  },
-  "inputs": []
+  }
 }
