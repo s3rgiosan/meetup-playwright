@@ -85,12 +85,12 @@ jobs:
           let output = '';
 
           // Frontend Performance Metrics
-          if (results['Frontend Performance']) {
+          if (results['frontend']) {
             output += '### 🌐 Frontend Performance (Core Web Vitals)\n\n';
             output += '| Metric | Median | Range | Status |\n';
             output += '|--------|--------|-------|--------|\n';
 
-            const frontend = results['Frontend Performance'];
+            const frontend = results['frontend'];
             const metrics = [
               { key: 'timeToFirstByte', name: 'TTFB', threshold: 800 },
               { key: 'firstContentfulPaint', name: 'FCP', threshold: 1800 },
@@ -110,12 +110,12 @@ jobs:
           }
 
           // Editor Performance Metrics
-          if (results['Editor Performance']) {
+          if (results['editor']) {
             output += '### ✏️ Editor Performance\n\n';
             output += '| Metric | Median | Range |\n';
             output += '|--------|--------|-------|\n';
 
-            const editor = results['Editor Performance'];
+            const editor = results['editor'];
             const metrics = [
               { key: 'serverResponse', name: 'Server Response' },
               { key: 'firstContentfulPaint', name: 'FCP' },
@@ -138,8 +138,8 @@ jobs:
           output += '| Metric | Budget | Actual | Status |\n';
           output += '|--------|--------|--------|--------|\n';
 
-          if (results['Frontend Performance']) {
-            const frontend = results['Frontend Performance'];
+          if (results['frontend']) {
+            const frontend = results['frontend'];
             const budgets = [
               { key: 'largestContentfulPaint', name: 'LCP', budget: 2500 },
               { key: 'firstContentfulPaint', name: 'FCP', budget: 1800 },
@@ -190,8 +190,8 @@ jobs:
             { key: 'timeToFirstByte', budget: 800, name: 'TTFB' },
           ];
 
-          if (results['Frontend Performance']) {
-            const frontend = results['Frontend Performance'];
+          if (results['frontend']) {
+            const frontend = results['frontend'];
             budgets.forEach(({ key, budget, name }) => {
               const value = frontend[key];
               if (value && value.median > budget) {
@@ -217,10 +217,10 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload test artifacts
-        if: failure()
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.sha }}
           path: |
             playwright-report/
             test-results/
