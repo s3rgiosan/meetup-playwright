@@ -11,9 +11,9 @@
 
 | Comando | Descrição |
 | ------- | --------- |
-| `npm run env` | Alias para executar comandos wp-env directamente |
+| `npm run env` | Alias para executar comandos do wp-env directamente |
 | `npm run env:start` | Inicia o ambiente WordPress de teste em `http://localhost:8889` |
-| `npm run env:stop` | Para o ambiente WordPress (mantém os dados) |
+| `npm run env:stop` | Pára o ambiente WordPress (mantém os dados) |
 | `npm run env:clean` | Limpa o ambiente (remove dados mas mantém containers) |
 | `npm run env:destroy` | Destrói completamente o ambiente (remove containers e dados) |
 
@@ -22,8 +22,8 @@
 | Comando | Descrição |
 | ------- | --------- |
 | `npm run test:e2e` | Executa todos os testes E2E em modo headless. Ideal para CI/CD. |
-| `npm run test:e2e:debug` | Modo debug com Playwright Inspector. Pausar e inspecionar seletores. |
-| `npm run test:e2e:ui` | Interface gráfica do Playwright (UI Mode). Debug interativo. |
+| `npm run test:e2e:debug` | Modo debug com Playwright Inspector. Pausar e inspeccionar selectores. |
+| `npm run test:e2e:ui` | Interface gráfica do Playwright (UI Mode). Debug interactivo. |
 | `npm run test:e2e:headed` | Testes com browser visível. Ver execução em tempo real. |
 | `npm run test:e2e:trace` | Testes com tracing. Gera ficheiro para análise detalhada. |
 
@@ -62,10 +62,10 @@
 **WordPress Server-Timing:**
 
 - Total (wp-total)
-- Database (wp-db)
+- Base de dados (wp-db)
 - Cache (wp-cache)
 
-Os resultados são salvos em `artifacts/performance-results/` com estatísticas (mediana, quartis, min/max) e verificação de performance budgets.
+Os resultados são guardados em `artifacts/performance-results/` com estatísticas (mediana, quartis, mínimo/máximo) e verificação de performance budgets.
 
 ### Opções adicionais
 
@@ -85,11 +85,71 @@ npm run test:e2e -- --workers=2
 npm run test:e2e -- --update-snapshots
 ```
 
+## GitHub Actions
+
+### E2E Tests
+
+Executa automaticamente em push/PR para `main`.
+
+**Funcionalidades:**
+
+- Instala dependências e browsers
+- Inicia wp-env
+- Executa todos os testes E2E
+- Gera relatório HTML
+- Upload do relatório HTML como artefacto
+- Resumo de testes no Job Summary
+- Upload de artefactos (screenshots, traces) em caso de falha
+
+**Ver resultados:**
+
+1. Clica no separador Actions
+2. Clica numa execução do workflow "E2E Tests"
+3. Vê o resumo no Job Summary
+4. Consulta o relatório HTML nos artefactos
+
+### Performance Tests
+
+Executa automaticamente em push/PR para `main`.
+
+**Funcionalidades:**
+
+- Executa testes de performance
+- Gera relatório com métricas estatísticas
+- **Tabelas formatadas** no Job Summary com:
+  - Core Web Vitals (TTFB, FCP, LCP, CLS)
+  - Métricas WordPress (Server-Timing)
+  - Métricas do editor
+  - Métricas do bloco
+- **Verificação de performance budgets** (falha se exceder)
+- Upload de resultados como artefactos
+- Visualização clara com estado (✅/⚠️/❌)
+
+**Performance Budgets:**
+
+- LCP: 2500ms
+- FCP: 1800ms
+- TTFB: 800ms
+- CLS: 0.1
+
+**Ver resultados:**
+
+1. Clica no separador Actions
+2. Clica numa execução do workflow "Performance Tests"
+3. Vê as tabelas formatadas no Job Summary
+4. Consulta os resultados JSON nos artefactos
+
 ## Credenciais wp-env
 
 O ambiente wp-env usa as seguintes credenciais por padrão:
 
 - **URL**      : `http://localhost:8889`
 - **Admin URL**: `http://localhost:8889/wp-admin`
-- **Username** : `admin`
-- **Password** : `password`
+- **Utilizador**: `admin`
+- **Palavra-passe**: `password`
+
+## Inicializar agentes
+
+```bash
+npx playwright init-agents --loop=vscode
+```
