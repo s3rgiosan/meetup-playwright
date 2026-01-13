@@ -59,9 +59,10 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
 
             # Parse JSON and create formatted tables
-            node << EOF
+            export RESULTS_FILE
+            node << 'EOF'
           const fs = require('fs');
-          const resultsFile = "$RESULTS_FILE";
+          const resultsFile = process.env.RESULTS_FILE;
           if (!resultsFile) {
             console.error('RESULTS_FILE is not set');
             process.exit(1);
@@ -172,9 +173,10 @@ jobs:
           RESULTS_FILE="artifacts/performance-results/${{ github.sha }}.performance-results.json"
 
           if [ -f "$RESULTS_FILE" ]; then
-            node << EOF
+            export RESULTS_FILE
+            node << 'EOF'
           const fs = require('fs');
-          const resultsFile = "$RESULTS_FILE";
+          const resultsFile = process.env.RESULTS_FILE;
           if (!resultsFile) {
             console.error('RESULTS_FILE is not set');
             process.exit(1);
