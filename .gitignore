@@ -3,6 +3,7 @@ artifacts/
 test-results/
 playwright-report/
 playwright/.cache/
+blob-report/
 
 *~
 .DS_Store

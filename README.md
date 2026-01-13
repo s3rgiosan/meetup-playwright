@@ -27,6 +27,45 @@
 | `npm run test:e2e:headed` | Testes com browser visível. Ver execução em tempo real. |
 | `npm run test:e2e:trace` | Testes com tracing. Gera ficheiro para análise detalhada. |
 
+### Testes de Performance
+
+| Comando | Descrição |
+| ------- | --------- |
+| `npm run test:performance` | Executa testes de performance. Mede Core Web Vitals e métricas de carregamento. |
+
+#### Métricas
+
+**Frontend (20 iterações):**
+
+- TTFB (Time to First Byte)
+- LCP (Largest Contentful Paint)
+- CLS (Cumulative Layout Shift)
+- FCP (First Contentful Paint)
+- Server-Timing (métricas WordPress)
+
+**Editor (5 iterações):**
+
+- Tempo de resposta do servidor
+- First Contentful Paint
+- DOM Content Loaded
+- Page Load
+- Tempo de inserção do bloco
+- Tempo de renderização do bloco
+- Tempo de abertura do painel de configurações
+
+**Bloco (5 iterações):**
+
+- Tempo de inserção do bloco
+- Tempo de renderização do bloco
+- Tempo de edição de atributos
+
+**WordPress Server-Timing:**
+
+- Total (wp-total)
+- Database (wp-db)
+- Cache (wp-cache)
+
+Os resultados são salvos em `artifacts/performance-results/` com estatísticas (mediana, quartis, min/max) e verificação de performance budgets.
 
 ### Opções adicionais
 

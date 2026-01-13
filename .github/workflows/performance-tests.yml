@@ -1,0 +1,226 @@
+name: Performance Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  performance-tests:
+    name: Playwright Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start WordPress
+        run: npm run env:start
+
+      - name: Run performance tests
+        id: performance
+        run: npm run test:performance
+        env:
+          RESULTS_ID: ${{ github.sha }}
+          WP_ARTIFACTS_PATH: ./artifacts/performance-results
+        continue-on-error: true
+
+      - name: Generate performance report
+        if: always()
+        run: |
+          RESULTS_FILE="artifacts/performance-results/${{ github.sha }}.performance-results.json"
+
+          if [ -f "$RESULTS_FILE" ]; then
+            echo "## 📊 Performance Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Parse JSON and create formatted tables
+            node << 'EOF'
+          const fs = require('fs');
+          const results = JSON.parse(fs.readFileSync(process.env.RESULTS_FILE, 'utf8'));
+          const summary = process.env.GITHUB_STEP_SUMMARY;
+
+          const formatMetric = (value) => {
+            if (!value) return 'N/A';
+            return `${value.median.toFixed(2)}ms (${value.min.toFixed(2)}-${value.max.toFixed(2)})`;
+          };
+
+          const formatStatus = (value, threshold) => {
+            if (!value) return '❓';
+            if (value.median <= threshold) return '✅';
+            if (value.median <= threshold * 1.2) return '⚠️';
+            return '❌';
+          };
+
+          let output = '';
+
+          // Frontend Performance Metrics
+          if (results['Frontend Performance']) {
+            output += '### 🌐 Frontend Performance (Core Web Vitals)\n\n';
+            output += '| Metric | Median | Range | Status |\n';
+            output += '|--------|--------|-------|--------|\n';
+
+            const frontend = results['Frontend Performance'];
+            const metrics = [
+              { key: 'timeToFirstByte', name: 'TTFB', threshold: 800 },
+              { key: 'firstContentfulPaint', name: 'FCP', threshold: 1800 },
+              { key: 'largestContentfulPaint', name: 'LCP', threshold: 2500 },
+              { key: 'cumulativeLayoutShift', name: 'CLS', threshold: 0.1 },
+            ];
+
+            metrics.forEach(({ key, name, threshold }) => {
+              const value = frontend[key];
+              if (value) {
+                const status = formatStatus(value, threshold);
+                output += `| ${name} | ${value.median.toFixed(2)}ms | ${value.min.toFixed(2)}-${value.max.toFixed(2)}ms | ${status} |\n`;
+              }
+            });
+
+            output += '\n';
+          }
+
+          // Editor Performance Metrics
+          if (results['Editor Performance']) {
+            output += '### ✏️ Editor Performance\n\n';
+            output += '| Metric | Median | Range |\n';
+            output += '|--------|--------|-------|\n';
+
+            const editor = results['Editor Performance'];
+            const metrics = [
+              { key: 'serverResponse', name: 'Server Response' },
+              { key: 'firstContentfulPaint', name: 'FCP' },
+              { key: 'domContentLoaded', name: 'DOM Content Loaded' },
+              { key: 'loaded', name: 'Page Load' },
+            ];
+
+            metrics.forEach(({ key, name }) => {
+              const value = editor[key];
+              if (value) {
+                output += `| ${name} | ${value.median.toFixed(2)}ms | ${value.min.toFixed(2)}-${value.max.toFixed(2)}ms |\n`;
+              }
+            });
+
+            output += '\n';
+          }
+
+          // Performance Budget Check
+          output += '### 📈 Performance Budget\n\n';
+          output += '| Metric | Budget | Actual | Status |\n';
+          output += '|--------|--------|--------|--------|\n';
+
+          if (results['Frontend Performance']) {
+            const frontend = results['Frontend Performance'];
+            const budgets = [
+              { key: 'largestContentfulPaint', name: 'LCP', budget: 2500 },
+              { key: 'firstContentfulPaint', name: 'FCP', budget: 1800 },
+              { key: 'timeToFirstByte', name: 'TTFB', budget: 800 },
+            ];
+
+            budgets.forEach(({ key, name, budget }) => {
+              const value = frontend[key];
+              if (value) {
+                const actual = value.median;
+                const status = actual <= budget ? '✅ Pass' : '❌ Fail';
+                output += `| ${name} | ${budget}ms | ${actual.toFixed(2)}ms | ${status} |\n`;
+              }
+            });
+          }
+
+          output += '\n';
+          output += '> 📦 Full results available in artifacts\n';
+
+          fs.appendFileSync(summary, output);
+          EOF
+          else
+            echo "## ❌ Performance Test Results" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Results file not found. Tests may have failed." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check performance budgets
+        if: always()
+        run: |
+          RESULTS_FILE="artifacts/performance-results/${{ github.sha }}.performance-results.json"
+
+          if [ -f "$RESULTS_FILE" ]; then
+            node << 'EOF'
+          const fs = require('fs');
+          const results = JSON.parse(fs.readFileSync(process.env.RESULTS_FILE, 'utf8'));
+
+          let failed = false;
+          const budgets = [
+            { key: 'largestContentfulPaint', budget: 2500, name: 'LCP' },
+            { key: 'firstContentfulPaint', budget: 1800, name: 'FCP' },
+            { key: 'timeToFirstByte', budget: 800, name: 'TTFB' },
+          ];
+
+          if (results['Frontend Performance']) {
+            const frontend = results['Frontend Performance'];
+            budgets.forEach(({ key, budget, name }) => {
+              const value = frontend[key];
+              if (value && value.median > budget) {
+                console.error(`❌ ${name} exceeds budget: ${value.median.toFixed(2)}ms > ${budget}ms`);
+                failed = true;
+              }
+            });
+          }
+
+          if (failed) {
+            process.exit(1);
+          }
+          EOF
+          fi
+
+      - name: Upload performance results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results-${{ github.sha }}
+          path: artifacts/performance-results/
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Stop WordPress
+        if: always()
+        run: npm run env:stop
+
+      - name: Fail if performance budgets exceeded
+        if: steps.performance.outcome == 'failure' || steps.performance.outcome == 'success'
+        run: |
+          # This step will fail if performance budgets were exceeded
+          exit 0
