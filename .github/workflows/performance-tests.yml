@@ -59,9 +59,14 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
 
             # Parse JSON and create formatted tables
-            node << 'EOF'
+            node << EOF
           const fs = require('fs');
-          const results = JSON.parse(fs.readFileSync(process.env.RESULTS_FILE, 'utf8'));
+          const resultsFile = "$RESULTS_FILE";
+          if (!resultsFile) {
+            console.error('RESULTS_FILE is not set');
+            process.exit(1);
+          }
+          const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
           const summary = process.env.GITHUB_STEP_SUMMARY;
 
           const formatMetric = (value) => {
@@ -167,9 +172,14 @@ jobs:
           RESULTS_FILE="artifacts/performance-results/${{ github.sha }}.performance-results.json"
 
           if [ -f "$RESULTS_FILE" ]; then
-            node << 'EOF'
+            node << EOF
           const fs = require('fs');
-          const results = JSON.parse(fs.readFileSync(process.env.RESULTS_FILE, 'utf8'));
+          const resultsFile = "$RESULTS_FILE";
+          if (!resultsFile) {
+            console.error('RESULTS_FILE is not set');
+            process.exit(1);
+          }
+          const results = JSON.parse(fs.readFileSync(resultsFile, 'utf8'));
 
           let failed = false;
           const budgets = [
