@@ -7,6 +7,7 @@ registerBlockType('meetup/info', {
 	edit: function ({ attributes, setAttributes }) {
 		const blockProps = useBlockProps({
 			className: 'meetup-info',
+			'data-testid': 'meetup-info',
 		});
 
 		return (
