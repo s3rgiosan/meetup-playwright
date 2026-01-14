@@ -1,7 +1,7 @@
 # Meetup :: Playwright + IA: Testes E2E sem drama
 
-[Slides](https://docs.google.com/presentation/d/1pyBaXg97NVEpwCElGN1BlHMI0cybVu93gNEUJzMsDMk/edit?usp=sharing)
-[AI Prompts](PROMPTS.md)
+* [Slides](https://docs.google.com/presentation/d/1pyBaXg97NVEpwCElGN1BlHMI0cybVu93gNEUJzMsDMk/edit?usp=sharing)
+* [AI Prompts](PROMPTS.md)
 
 ## Requisitos
 
